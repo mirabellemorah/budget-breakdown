@@ -1,0 +1,1622 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Budget Breakdown</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Outfit:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #fefdf9;
+            --fg: #1a1714;
+            --warm: #e8d5c4;
+            --accent: #19181d;
+            --border: #eae8e3;
+            --muted: #8b8680;
+            --light: #f5f3f0;
+        }
+
+        html,
+        body {
+            font-family: "Outfit", sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            line-height: 1.6;
+        }
+
+        .shell {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(254, 253, 249, 0.98);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border);
+            padding: 28px 40px;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 20px 24px;
+            }
+        }
+
+        @media (max-width: 540px) {
+            header {
+                padding: 18px 20px;
+            }
+        }
+
+        .header-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            font-family: "Playfair Display", serif;
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: -0.5px;
+        }
+
+        .brand em {
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        nav {
+            display: flex;
+            gap: 40px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            transition: color 0.3s ease;
+            font-family: "Outfit", sans-serif;
+        }
+
+        nav button:hover,
+        nav button.active {
+            color: var(--fg);
+        }
+
+        /* MAIN */
+        main {
+            flex: 1;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 60px 24px;
+            }
+        }
+
+        @media (max-width: 540px) {
+            main {
+                padding: 40px 20px;
+            }
+        }
+
+        .section {
+            display: none;
+            opacity: 0;
+            animation: fadeInSection 0.5s ease 0.1s forwards;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeInSection {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            margin-bottom: 56px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section-num {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: var(--muted);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-family: "Playfair Display", serif;
+            font-size: 56px;
+            line-height: 1.15;
+            letter-spacing: -1.5px;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .section-title em {
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .section-desc {
+            font-size: 16px;
+            color: var(--muted);
+            max-width: 680px;
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        @media (max-width: 768px) {
+            .section-title {
+                font-size: 40px;
+            }
+        }
+
+        @media (max-width: 540px) {
+            .section-title {
+                font-size: 32px;
+            }
+        }
+
+        /* GRID */
+        .grid {
+            display: flex;
+            align-items: flex-start;
+            gap: 56px;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .grid>div {
+            min-width: 320px;
+            flex: 1 1 0;
+        }
+
+        .grid>.chart-container {
+            flex: 0 0 420px;
+            max-width: 420px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                display: block;
+                gap: 32px;
+            }
+
+            .grid>.chart-container {
+                max-width: none;
+            }
+        }
+
+        /* INPUT GROUPS */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        /* CURRENCY */
+        .currency-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .currency-label-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 10px;
+        }
+
+        .currency-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        @media (max-width: 540px) {
+
+            .currency-row,
+            .currency-label-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .currency-control {
+            position: relative;
+            z-index: 200;
+        }
+
+        .currency-btn {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--light);
+            border: 1px solid var(--border);
+            font-family: "Outfit", sans-serif;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.25s ease;
+            color: var(--fg);
+        }
+
+        .currency-btn:hover {
+            background: var(--warm);
+            border-color: var(--warm);
+        }
+
+        .currency-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg);
+        }
+
+        .currency-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-top: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 9999;
+            box-shadow: 0 12px 32px rgba(26, 23, 20, 0.08);
+        }
+
+        .currency-dropdown.open {
+            max-height: 280px;
+            overflow-y: auto;
+            border-top: 1px solid var(--border);
+        }
+
+        .currency-search {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 10000;
+        }
+
+        .currency-search input {
+            width: 100%;
+            background: var(--light);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            font-family: "Outfit", sans-serif;
+            font-size: 12px;
+            color: var(--fg);
+            outline: none;
+        }
+
+        .currency-search input:focus {
+            border-color: var(--accent);
+        }
+
+        .currency-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            transition: background 0.15s;
+        }
+
+        .currency-option:last-child {
+            border-bottom: none;
+        }
+
+        .currency-option:hover {
+            background: var(--light);
+        }
+
+        .currency-option.selected {
+            background: var(--warm);
+            font-weight: 600;
+        }
+
+        /* INPUT FIELD */
+        .input-field {
+            display: flex;
+            align-items: baseline;
+            border-bottom: 2px solid var(--border);
+            padding: 8px 0;
+            gap: 8px;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus-within {
+            border-bottom-color: var(--accent);
+        }
+
+        .currency-symbol {
+            font-family: "Playfair Display", serif;
+            font-size: 28px;
+            line-height: 1;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            background: transparent;
+            border: none;
+            font-family: "Playfair Display", serif;
+            font-size: 40px;
+            outline: none;
+            color: var(--fg);
+            font-weight: 400;
+        }
+
+        input[type="number"]::placeholder {
+            color: var(--muted);
+        }
+
+        /* CONVERSIONS */
+        .conversions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 540px) {
+            .conversions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .conversion-chip {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--light);
+            border: 1px solid var(--border);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .conversion-value {
+            font-family: "Playfair Display", serif;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* BUTTONS */
+        .btn {
+            font-family: "Outfit", sans-serif;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            background: var(--fg);
+            color: var(--bg);
+            margin-top: 8px;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent);
+            color: var(--fg);
+        }
+
+        .btn-secondary {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--fg);
+        }
+
+        .btn-secondary:hover {
+            background: var(--light);
+            border-color: var(--accent);
+        }
+
+        .btn-preset {
+            padding: 14px;
+            background: var(--light);
+            border: 1px solid var(--border);
+            color: var(--fg);
+            font-size: 12px;
+        }
+
+        .btn-preset:hover {
+            background: var(--warm);
+            border-color: var(--warm);
+        }
+
+        /* SUMMARY */
+        .summary-card {
+            padding: 28px;
+            background: var(--light);
+            border: 1px solid var(--border);
+        }
+
+        .summary-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--muted);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .summary-content {
+            font-size: 14px;
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        .summary-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .summary-link:hover {
+            text-decoration: underline;
+        }
+
+        /* CHART */
+        .grid {
+            align-items: start;
+        }
+
+        .chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            position: sticky;
+            top: 120px;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+            padding: 0 0 8px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                position: static;
+                top: auto;
+                max-height: none;
+                overflow-y: visible;
+                padding: 0;
+            }
+        }
+
+        .donut-wrap {
+            /* min(340px, 100%) */
+            width: 270px;
+            max-width: 340px;
+            aspect-ratio: 1;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .donut-svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+            filter: drop-shadow(0 2px 8px rgba(26, 23, 20, 0.06));
+        }
+
+        .donut-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .donut-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--muted);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .donut-amount {
+            font-family: "Playfair Display", serif;
+            font-size: 32px;
+            line-height: 1;
+            font-weight: 500;
+        }
+
+        /* BREAKDOWN */
+        .breakdown-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            background: var(--border);
+            margin-top: 18px;
+            width: min(420px, 100%);
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .breakdown-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 24px;
+            padding: 20px 24px;
+            background: var(--bg);
+            transition: all 0.2s ease;
+        }
+
+        .breakdown-row:hover {
+            background: var(--light);
+        }
+
+        .breakdown-row.total {
+            background: var(--fg);
+            color: var(--bg);
+        }
+
+        .breakdown-row.total:hover {
+            background: var(--fg);
+        }
+
+        .breakdown-label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .breakdown-name {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        .breakdown-pct {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 400;
+        }
+
+        .breakdown-row.total .breakdown-pct {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .breakdown-amount {
+            font-family: "Playfair Display", serif;
+            font-size: 18px;
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .breakdown-converted {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .breakdown-row.total .breakdown-converted {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* CATEGORIES */
+        .category-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .category-item {
+            display: grid;
+            grid-template-columns: 140px 1fr 60px;
+            gap: 24px;
+            padding: 20px 24px;
+            background: var(--bg);
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .category-item {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+
+        .category-name {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        .slider-wrap {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 3px;
+            background: var(--border);
+            border: none;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--fg);
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--accent);
+            transform: scale(1.15);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: var(--fg);
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        input[type="range"]::-moz-range-thumb:hover {
+            background: var(--accent);
+            transform: scale(1.15);
+        }
+
+        .pct-display {
+            min-width: 45px;
+            text-align: right;
+            font-family: "Playfair Display", serif;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* PRESETS */
+        .presets {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 540px) {
+            .presets {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ADD CATEGORY */
+        .add-category {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 540px) {
+            .add-category {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .add-category input {
+            padding: 14px 16px;
+            background: var(--light);
+            border: 1px solid var(--border);
+            font-family: "Outfit", sans-serif;
+            font-size: 13px;
+            color: var(--fg);
+            outline: none;
+        }
+
+        .add-category input:focus {
+            border-color: var(--accent);
+        }
+
+        /* PROGRESS */
+        .progress-wrap {
+            margin-bottom: 40px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--muted);
+            margin-bottom: 12px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 39px 20px;
+        }
+
+        .empty-title {
+            font-family: "Playfair Display", serif;
+            font-size: 28px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .empty-desc {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* HISTORY */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .history-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 24px;
+            padding: 20px 24px;
+            background: var(--bg);
+            align-items: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            background: var(--light);
+        }
+
+        .history-date {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            color: var(--muted);
+            min-width: 100px;
+        }
+
+        .history-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .history-amount {
+            font-family: "Playfair Display", serif;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .history-categories {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .history-action {
+            font-size: 11px;
+            padding: 8px 16px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .history-action:hover {
+            opacity: 0.8;
+        }
+
+        /* FOOTER */
+        footer {
+            margin-top: 80px;
+            padding: 56px 40px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            footer {
+                padding: 40px 24px;
+            }
+        }
+
+        .footer-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-text {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="shell">
+        <!-- HEADER -->
+        <header>
+            <div class="header-inner">
+                <div class="brand">Budget <em>Breakdown</em></div>
+                <nav>
+                    <button class="nav-btn active" data-section="calculator">
+                        (01) Calculate
+                    </button>
+                    <button class="nav-btn" data-section="categories">
+                        (02) Categories
+                    </button>
+                    <button class="nav-btn" data-section="history">(03) History</button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main>
+            <!-- CALCULATOR SECTION -->
+            <section class="section active" id="calculator">
+                <div class="section-header">
+                    <div class="section-num">(01) Your Income</div>
+                    <h1 class="section-title">Allocate your <em>money</em></h1>
+                    <p class="section-desc">
+                        Break down your income into meaningful categories. See exactly
+                        where your money goes and optimise your spending strategy.
+                    </p>
+                </div>
+
+                <div class="grid">
+                    <!-- LEFT: INPUTS -->
+                    <div class="input-panel">
+                        <!-- Currency Selection -->
+                        <div class="input-group currency-selection">
+                            <div class="currency-label-row">
+                                <div class="currency-label">Select base currency</div>
+                                <div class="currency-label">Convert to</div>
+                            </div>
+                            <div class="currency-row">
+                                <div class="currency-control">
+                                    <button class="currency-btn active" id="base-btn">
+                                        GBP (£)<span>▼</span>
+                                    </button>
+                                    <div class="currency-dropdown" id="base-dropdown">
+                                        <div class="currency-search">
+                                            <input type="text" id="base-search" placeholder="Search currency..." />
+                                        </div>
+                                        <div class="currency-list" id="base-list"></div>
+                                    </div>
+                                </div>
+
+                                <div class="currency-control">
+                                    <button class="currency-btn" id="compare-btn">
+                                        USD ($)<span>▼</span>
+                                    </button>
+                                    <div class="currency-dropdown" id="compare-dropdown">
+                                        <div class="currency-search">
+                                            <input type="text" id="compare-search" placeholder="Search currency..." />
+                                        </div>
+                                        <div class="currency-list" id="compare-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Income Input -->
+                        <div class="input-group">
+                            <label>Enter Income Amount</label>
+                            <div class="input-field">
+                                <div class="currency-symbol" id="symbol">£</div>
+                                <input type="number" id="income" placeholder="0" inputmode="decimal" />
+                            </div>
+                            <div class="conversions" id="conversions"></div>
+                        </div>
+
+                        <!-- Calculate Button -->
+                        <button class="btn btn-primary" id="calc-btn">
+                            Calculate Breakdown
+                        </button>
+
+                        <!-- Summary Card -->
+                        <div class="summary-card">
+                            <div class="summary-label">Your Setup</div>
+                            <div class="summary-content" id="summary">
+                                Configure categories to see your breakdown strategy. <a class="summary-link"
+                                    onclick="document.querySelector('[data-section=categories]').click()">Go to
+                                    Categories. </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: VISUALIZATION -->
+                    <div class="chart-container">
+                        <!-- Donut Chart -->
+                        <div class="donut-wrap" id="donut-wrap">
+                            <svg class="donut-svg" viewBox="0 0 200 200" id="donut-svg">
+                                <circle cx="100" cy="100" r="75" fill="none" stroke="#EAE8E3" stroke-width="30" />
+                            </svg>
+                            <div class="donut-center">
+                                <div class="donut-label">Total Income</div>
+                                <div class="donut-amount" id="donut-amount">£0</div>
+                            </div>
+                        </div>
+
+                        <!-- Breakdown List -->
+                        <div class="breakdown-list" id="breakdown">
+                            <div class="empty-state">
+                                <div class="empty-title">Nothing to show</div>
+                                <p class="empty-desc">
+                                    Enter an income amount above to see breakdown
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CATEGORIES SECTION -->
+            <section class="section" id="categories">
+                <div class="section-header">
+                    <div class="section-num">(02) Configuration</div>
+                    <h1 class="section-title">Budget <em>categories</em></h1>
+                    <p class="section-desc">
+                        Create your own allocation strategy or use one of our proven
+                        frameworks designed for financial health.
+                    </p>
+                </div>
+
+                <div class="grid">
+                    <div>
+                        <!-- Quick Presets -->
+                        <label style="display: block; margin-bottom: 16px">Quick Start Presets</label>
+                        <div class="presets">
+                            <button class="btn btn-preset" id="preset-50-30-20">
+                                50/30/20
+                            </button>
+                            <button class="btn btn-preset" id="preset-60-20-20">
+                                60/20/20
+                            </button>
+                            <button class="btn btn-preset" id="preset-70-20-10">
+                                70/20/10
+                            </button>
+                        </div>
+
+                        <!-- Add Category -->
+                        <div class="input-group">
+                            <label>Create New Category</label>
+                            <div class="add-category">
+                                <input type="text" id="new-category" placeholder="E.g. Rent, Food, Travel" />
+                                <button class="btn btn-secondary" id="add-category-btn">
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Allocation Progress -->
+                    <div>
+                        <div class="progress-wrap">
+                            <div class="progress-label">
+                                <span>Total Allocated</span>
+                                <span id="total-pct">0%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="total-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Categories List -->
+                <div class="category-list" id="categories-list">
+                    <div class="empty-state">
+                        <div class="empty-title">No categories yet</div>
+                        <p class="empty-desc">
+                            Use a preset or add custom categories to get started
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Reset Button -->
+                <button class="btn btn-secondary" id="reset-btn" style="
+              margin-top: 48px;
+              background: rgba(212, 80, 92, 0.08);
+              border-color: #d4505c;
+              color: #d4505c;
+            ">
+                    Reset All
+                </button>
+            </section>
+
+            <!-- HISTORY SECTION -->
+            <section class="section" id="history">
+                <div class="section-header">
+                    <div class="section-num">(03) Archive</div>
+                    <h1 class="section-title">Past <em>calculations</em></h1>
+                    <p class="section-desc">
+                        View and manage your calculation history. Restore previous setups
+                        with a single click.
+                    </p>
+                </div>
+
+                <div class="history-list" id="history-list">
+                    <div class="empty-state">
+                        <div class="empty-title">No calculations yet</div>
+                        <p class="empty-desc">
+                            Your calculation history will appear here
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- FOOTER -->
+        <footer>
+            <div class="footer-inner">
+                <div class="footer-text">
+                    Exchange rates updated every 12 hours via Frankfurter API
+                </div>
+                <div class="footer-actions">
+                    <button class="btn btn-secondary" id="pdf-btn">
+                        Export as PDF
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // CURRENCIES
+        const currencies = [
+            { code: "GBP", symbol: "£", name: "British Pound" },
+            { code: "USD", symbol: "$", name: "US Dollar" },
+            { code: "EUR", symbol: "€", name: "Euro" },
+            { code: "NGN", symbol: "₦", name: "Nigerian Naira" },
+            { code: "JPY", symbol: "¥", name: "Japanese Yen" },
+            { code: "AUD", symbol: "A$", name: "Australian Dollar" },
+            { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
+            { code: "INR", symbol: "₹", name: "Indian Rupee" },
+            { code: "MXN", symbol: "$", name: "Mexican Peso" },
+            { code: "BRL", symbol: "R$", name: "Brazilian Real" },
+            { code: "ZAR", symbol: "R", name: "South African Rand" },
+            { code: "SGD", symbol: "S$", name: "Singapore Dollar" },
+            { code: "HKD", symbol: "HK$", name: "Hong Kong Dollar" },
+            { code: "CHF", symbol: "CHF", name: "Swiss Franc" },
+            { code: "SEK", symbol: "kr", name: "Swedish Krona" },
+            { code: "NZD", symbol: "NZ$", name: "New Zealand Dollar" },
+            { code: "KES", symbol: "KSh", name: "Kenyan Shilling" },
+            { code: "GHS", symbol: "₵", name: "Ghanaian Cedi" },
+        ];
+
+        // STATE
+        let categories = JSON.parse(localStorage.getItem("budgetCategories")) || [
+            { name: "NEEDS", percentage: 50 },
+            { name: "WANTS", percentage: 30 },
+            { name: "SAVINGS", percentage: 20 },
+        ];
+        let history = JSON.parse(localStorage.getItem("budgetHistory")) || [];
+        let currentCurrency = localStorage.getItem("currentCurrency") || "GBP";
+        let compareCurrency = localStorage.getItem("compareCurrency") || "USD";
+        let fxRates = JSON.parse(localStorage.getItem("fxRates")) || {};
+
+        const colors = [
+            "#9A94FF",
+            "#BDF177",
+            "#19181d",
+            "#D4A574",
+            "#A5968F",
+            "#8B9B7E",
+        ];
+
+        // NAVIGATION
+        document.querySelectorAll(".nav-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const section = btn.dataset.section;
+                document
+                    .querySelectorAll(".section")
+                    .forEach((s) => s.classList.remove("active"));
+                document.getElementById(section).classList.add("active");
+                document
+                    .querySelectorAll(".nav-btn")
+                    .forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+            });
+        });
+
+        // FX RATES
+        async function fetchRates() {
+            try {
+                const res = await fetch(
+                    `https://api.frankfurter.app/latest?from=GBP&to=${currencies.map((c) => c.code).join(",")}`,
+                );
+                const data = await res.json();
+                fxRates = { GBP: 1, ...data.rates };
+                localStorage.setItem("fxRates", JSON.stringify(fxRates));
+            } catch {
+                fxRates = { GBP: 1, USD: 1.27, EUR: 1.17, NGN: 2000, JPY: 188 };
+            }
+            renderCurrencyLists();
+            calculate();
+        }
+
+        function convertAmount(amount, from, to) {
+            const fromRate = fxRates[from] || 1;
+            const toRate = fxRates[to] || 1;
+            return (amount / fromRate) * toRate;
+        }
+
+        // CURRENCY RENDERING
+        function renderCurrencyLists() {
+            renderCurrencyList("base", currentCurrency);
+            renderCurrencyList("compare", compareCurrency);
+        }
+
+        function renderCurrencyList(type, selected) {
+            const list = document.getElementById(`${type}-list`);
+            list.innerHTML = currencies
+                .map(
+                    (c) => `
+                <div class="currency-option ${c.code === selected ? "selected" : ""}" data-code="${c.code}" data-type="${type}">
+                    <div style="text-align: left;">
+                        <strong style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">${c.code}</strong>
+                        <div style="font-size: 11px; color: var(--muted);">${c.name}</div>
+                    </div>
+                    <span>${c.symbol}</span>
+                </div>
+            `,
+                )
+                .join("");
+
+            list.querySelectorAll(".currency-option").forEach((opt) => {
+                opt.addEventListener("click", () => {
+                    const code = opt.dataset.code;
+                    if (type === "base") {
+                        currentCurrency = code;
+                        localStorage.setItem("currentCurrency", code);
+                        const cur = currencies.find((c) => c.code === code);
+                        document.getElementById("base-btn").innerHTML =
+                            `${code} (${cur.symbol})<span>▼</span>`;
+                    } else {
+                        compareCurrency = code;
+                        localStorage.setItem("compareCurrency", code);
+                        const cur = currencies.find((c) => c.code === code);
+                        document.getElementById("compare-btn").innerHTML =
+                            `${code} (${cur.symbol})<span>▼</span>`;
+                    }
+                    document
+                        .getElementById(`${type}-dropdown`)
+                        .classList.remove("open");
+                    updateSymbol();
+                    renderConversions();
+                    renderCurrencyLists();
+                    calculate();
+                });
+            });
+        }
+
+        function setupCurrencyDropdowns() {
+            ["base", "compare"].forEach((type) => {
+                const btn = document.getElementById(`${type}-btn`);
+                const dropdown = document.getElementById(`${type}-dropdown`);
+                const search = document.getElementById(`${type}-search`);
+
+                btn.addEventListener("click", () => {
+                    dropdown.classList.toggle("open");
+                });
+
+                search.addEventListener("input", (e) => {
+                    const q = e.target.value.toLowerCase();
+                    dropdown.querySelectorAll(".currency-option").forEach((opt) => {
+                        opt.style.display = opt.textContent.toLowerCase().includes(q)
+                            ? ""
+                            : "none";
+                    });
+                });
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!e.target.closest(".currency-control")) {
+                    document
+                        .querySelectorAll(".currency-dropdown")
+                        .forEach((d) => d.classList.remove("open"));
+                }
+            });
+        }
+
+        function updateSymbol() {
+            const cur = currencies.find((c) => c.code === currentCurrency);
+            document.getElementById("symbol").textContent = cur.symbol;
+        }
+
+        // CALCULATIONS
+        function renderConversions() {
+            const income = parseFloat(document.getElementById("income").value);
+            const grid = document.getElementById("conversions");
+            if (!income || income <= 0) {
+                grid.innerHTML = "";
+                return;
+            }
+
+            const baseCur = currencies.find((c) => c.code === currentCurrency);
+            const compareCur = currencies.find((c) => c.code === compareCurrency);
+            const converted = convertAmount(
+                income,
+                currentCurrency,
+                compareCurrency,
+            );
+
+            grid.innerHTML = `
+                <div class="conversion-chip">
+                    <span>${currentCurrency}</span>
+                    <span class="conversion-value">${baseCur.symbol}${income.toFixed(2)}</span>
+                </div>
+                <div class="conversion-chip">
+                    <span>${compareCurrency}</span>
+                    <span class="conversion-value">${compareCur.symbol}${converted.toFixed(2)}</span>
+                </div>
+            `;
+        }
+
+        function calculate() {
+            const income = parseFloat(document.getElementById("income").value);
+            const breakdownHtml = document.getElementById("breakdown");
+            if (!income || income <= 0) {
+                breakdownHtml.innerHTML =
+                    '<div class="empty-state"><div class="empty-title">Nothing to show</div><p class="empty-desc">Enter an income amount to see breakdown</p></div>';
+                return;
+            }
+
+            const cur = currencies.find((c) => c.code === currentCurrency);
+            const compareCur = currencies.find((c) => c.code === compareCurrency);
+
+            let html = `<div class="breakdown-row total">
+                <div class="breakdown-label"><div class="breakdown-name">Total Income</div></div>
+                <div class="breakdown-amount">${cur.symbol}${income.toFixed(2)}</div>
+            </div>`;
+
+            let totalAllocated = 0;
+            categories.forEach((cat, i) => {
+                if (cat.percentage > 0) {
+                    const amount = (income * cat.percentage) / 100;
+                    totalAllocated += amount;
+                    const converted = convertAmount(
+                        amount,
+                        currentCurrency,
+                        compareCurrency,
+                    );
+                    html += `<div class="breakdown-row">
+                        <div class="breakdown-label">
+                            <div class="breakdown-name">${cat.name}</div>
+                            <div class="breakdown-pct">${cat.percentage}%</div>
+                        </div>
+                        <div>
+                            <div class="breakdown-amount">${cur.symbol}${amount.toFixed(2)}</div>
+                            <div class="breakdown-converted">${compareCur.symbol}${converted.toFixed(2)}</div>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            const unallocated = income - totalAllocated;
+            if (unallocated > 0.01) {
+                const unPct = (unallocated / income) * 100;
+                html += `<div class="breakdown-row">
+                    <div class="breakdown-label">
+                        <div class="breakdown-name">Unallocated</div>
+                        <div class="breakdown-pct">${unPct.toFixed(1)}%</div>
+                    </div>
+                    <div class="breakdown-amount">${cur.symbol}${unallocated.toFixed(2)}</div>
+                </div>`;
+            }
+
+            breakdownHtml.innerHTML = html;
+            renderDonut(income);
+            updateSummary();
+        }
+
+        function renderDonut(income) {
+            const svg = document.getElementById("donut-svg");
+            const cx = 100,
+                cy = 100,
+                r = 75,
+                sw = 30;
+            const circ = 2 * Math.PI * r;
+
+            let markup = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#EAE8E3" stroke-width="${sw}"/>`;
+            let offset = 0;
+
+            categories.forEach((cat, i) => {
+                if (cat.percentage > 0) {
+                    const dash = circ * (cat.percentage / 100);
+                    markup += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colors[i % colors.length]}" stroke-width="${sw}" stroke-dasharray="${dash} ${circ - dash}" stroke-dashoffset="${-offset}"/>`;
+                    offset += dash;
+                }
+            });
+
+            svg.innerHTML = markup;
+            const cur = currencies.find((c) => c.code === currentCurrency);
+            document.getElementById("donut-amount").textContent =
+                `${cur.symbol}${income.toFixed(0)}`;
+        }
+
+        function updateSummary() {
+            const allocated = categories.filter((c) => c.percentage > 0);
+            if (allocated.length === 0) {
+                document.getElementById("summary").innerHTML =
+                    'Configure categories to see your breakdown strategy. <a class="summary-link" onclick="document.querySelector(\'[data-section=categories]\').click()">Go to Categories</a>';
+                return;
+            }
+            const total = categories.reduce((s, c) => s + c.percentage, 0);
+            document.getElementById("summary").innerHTML =
+                `${allocated.length} active categories totalling ${total}% of your income. <a class="summary-link" onclick="document.querySelector(\'[data-section=categories]\').click()">Edit in Categories</a>`;
+        }
+
+        // CATEGORIES
+        function renderCategories() {
+            const list = document.getElementById("categories-list");
+            if (categories.length === 0) {
+                list.innerHTML =
+                    '<div class="empty-state"><div class="empty-title">No categories</div><p class="empty-desc">Add categories to create your budget</p></div>';
+                return;
+            }
+
+            list.innerHTML = categories
+                .map(
+                    (cat, i) => `
+                <div class="category-item">
+                    <div class="category-name">${cat.name}</div>
+                    <div class="slider-wrap">
+                        <input type="range" min="0" max="100" value="${cat.percentage}" data-index="${i}" class="category-slider">
+                    </div>
+                    <div class="pct-display">${cat.percentage}%</div>
+                </div>
+            `,
+                )
+                .join("");
+
+            list.querySelectorAll(".category-slider").forEach((slider) => {
+                slider.addEventListener("input", (e) => {
+                    const i = parseInt(e.target.dataset.index);
+                    categories[i].percentage = parseInt(e.target.value);
+                    localStorage.setItem(
+                        "budgetCategories",
+                        JSON.stringify(categories),
+                    );
+                    renderCategories();
+                    updateTotal();
+                    calculate();
+                });
+            });
+        }
+
+        function updateTotal() {
+            const total = categories.reduce((s, c) => s + c.percentage, 0);
+            document.getElementById("total-pct").textContent = total + "%";
+            document.getElementById("total-bar").style.width =
+                Math.min(total, 100) + "%";
+        }
+
+        function applyPreset(preset) {
+            const presets = {
+                "50-30-20": [
+                    { name: "NEEDS", percentage: 50 },
+                    { name: "WANTS", percentage: 30 },
+                    { name: "SAVINGS", percentage: 20 },
+                ],
+                "60-20-20": [
+                    { name: "NEEDS", percentage: 60 },
+                    { name: "WANTS", percentage: 20 },
+                    { name: "SAVINGS", percentage: 20 },
+                ],
+                "70-20-10": [
+                    { name: "NEEDS", percentage: 70 },
+                    { name: "WANTS", percentage: 20 },
+                    { name: "SAVINGS", percentage: 10 },
+                ],
+            };
+            categories = presets[preset];
+            localStorage.setItem("budgetCategories", JSON.stringify(categories));
+            renderCategories();
+            updateTotal();
+            calculate();
+        }
+
+        // EVENTS
+        document.getElementById("income").addEventListener("input", () => {
+            renderConversions();
+            calculate();
+        });
+
+        document.getElementById("calc-btn").addEventListener("click", calculate);
+
+        document
+            .getElementById("add-category-btn")
+            .addEventListener("click", () => {
+                const name = document
+                    .getElementById("new-category")
+                    .value.trim()
+                    .toUpperCase();
+                if (name && !categories.find((c) => c.name === name)) {
+                    categories.push({ name, percentage: 0 });
+                    localStorage.setItem(
+                        "budgetCategories",
+                        JSON.stringify(categories),
+                    );
+                    renderCategories();
+                    updateTotal();
+                    document.getElementById("new-category").value = "";
+                }
+            });
+
+        document
+            .getElementById("preset-50-30-20")
+            .addEventListener("click", () => applyPreset("50-30-20"));
+        document
+            .getElementById("preset-60-20-20")
+            .addEventListener("click", () => applyPreset("60-20-20"));
+        document
+            .getElementById("preset-70-20-10")
+            .addEventListener("click", () => applyPreset("70-20-10"));
+
+        document.getElementById("reset-btn").addEventListener("click", () => {
+            if (confirm("This will reset all categories and history. Continue?")) {
+                categories = [];
+                history = [];
+                localStorage.clear();
+                location.reload();
+            }
+        });
+
+        document.getElementById("pdf-btn").addEventListener("click", () => {
+            const income = parseFloat(document.getElementById("income").value);
+            if (!income || income <= 0) return;
+            const cur = currencies.find((c) => c.code === currentCurrency);
+            const el = document.createElement("div");
+            el.style.padding = "20px";
+            el.style.fontFamily = "Playfair Display, serif";
+            el.innerHTML = `<h1>Budget Breakdown</h1><p>${new Date().toLocaleDateString()}</p><p>Income: ${cur.symbol}${income.toFixed(2)}</p><table border="1" style="width: 100%; border-collapse: collapse;"><tr style="background: #1A1714; color: white;"><th style="padding: 8px;">Category</th><th style="padding: 8px;">Allocation</th><th style="padding: 8px;">Amount</th></tr>${categories
+                .filter((c) => c.percentage > 0)
+                .map(
+                    (c) =>
+                        `<tr><td style="padding: 8px;">${c.name}</td><td style="padding: 8px;">${c.percentage}%</td><td style="padding: 8px;">${cur.symbol}${((income * c.percentage) / 100).toFixed(2)}</td></tr>`,
+                )
+                .join("")}</table>`;
+            html2pdf()
+                .set({
+                    filename: `budget_${new Date().toISOString().split("T")[0]}.pdf`,
+                })
+                .from(el)
+                .save();
+        });
+
+        // INIT
+        renderCategories();
+        updateTotal();
+        setupCurrencyDropdowns();
+        renderCurrencyLists();
+        updateSymbol();
+        fetchRates();
+    </script>
+</body>
+
+</html>
