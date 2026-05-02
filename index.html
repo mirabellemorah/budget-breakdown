@@ -66,6 +66,7 @@
         @media (max-width: 540px) {
             header {
                 padding: 18px 20px;
+                position: static;
             }
         }
 
@@ -89,6 +90,18 @@
             font-weight: 400;
         }
 
+        @media (max-width: 768px) {
+            .brand {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 540px) {
+            .brand {
+                font-size: 14px;
+            }
+        }
+
         nav {
             display: flex;
             gap: 40px;
@@ -96,6 +109,22 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                gap: 24px;
+                font-size: 9px;
+                letter-spacing: 1.5px;
+            }
+        }
+
+        @media (max-width: 540px) {
+            nav {
+                gap: 12px;
+                font-size: 8px;
+                letter-spacing: 1px;
+            }
         }
 
         nav button {
@@ -396,6 +425,7 @@
             padding: 8px 0;
             gap: 8px;
             transition: border-color 0.3s;
+            overflow: hidden;
         }
 
         .input-field:focus-within {
